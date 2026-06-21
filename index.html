@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HiAuRo Web Tools</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel2: #1f2430;
+    --bd: #2b3242;
+    --tx: #eef2f7;
+    --tx2: #a8b2c1;
+    --accent: #4dabf7;
+    --accent2: #7c4dff;
+    --ok: #30d158;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(180deg, #0c0f14, #121620 45%, #0f131a);
+    color: var(--tx);
+  }
+  .page {
+    min-height: 100vh;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 40px 24px 32px;
+  }
+  .hero {
+    padding: 8px 0 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 28px;
+  }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  h1 {
+    margin: 0 0 10px;
+    font-size: 34px;
+    font-weight: 650;
+  }
+  .sub {
+    color: var(--tx2);
+    max-width: 760px;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+  .section {
+    margin-top: 28px;
+  }
+  .section h2 {
+    margin: 0 0 14px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+    border: 1px solid var(--bd);
+    border-radius: 8px;
+    padding: 16px;
+    min-height: 184px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--tx2);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 999px;
+    padding: 4px 8px;
+    margin-bottom: 10px;
+  }
+  .title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .desc {
+    font-size: 13px;
+    color: var(--tx2);
+    line-height: 1.6;
+  }
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .btn {
+    appearance: none;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: var(--panel2);
+    color: var(--tx);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn.primary {
+    background: linear-gradient(180deg, #2c8ff6, #1671d8);
+    border-color: rgba(77,171,247,0.45);
+  }
+  .hint {
+    margin-top: 30px;
+    padding: 16px;
+    background: rgba(48, 209, 88, 0.08);
+    border: 1px solid rgba(48, 209, 88, 0.2);
+    border-radius: 8px;
+    color: #c8f7d4;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  footer {
+    margin-top: 28px;
+    color: var(--tx2);
+    font-size: 12px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="hero">
+    <div class="eyebrow">HiAuRo 独立静态工具</div>
+    <h1>HiAuRo Web Tools</h1>
+    <div class="sub">
+      这里放的是独立运行的网页工具，不依赖宿主 WebUI 在线。轴编辑器支持手动导入本地
+      <code>trigger-catalog.json</code>，录制阅读器支持直接打开本地日志文件。
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>轴编辑</h2>
+    <div class="grid">
+      <article class="card">
+        <div>
+          <div class="tag">Tree</div>
+          <div class="title">树形轴编辑器</div>
+          <div class="desc">执行轴 / 辅助轴的树形结构编辑，适合逐层查看节点和属性。</div>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="./editor.html">打开</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div>
+          <div class="tag">Flow</div>
+          <div class="title">Flow 轴编辑器</div>
+          <div class="desc">基于 Drawflow 的画布编辑形态，适合拖拽排布节点关系。</div>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="./axflow-editor.html">打开</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div>
+          <div class="tag">Fact</div>
+          <div class="title">事实轴编辑器</div>
+          <div class="desc">查看和编辑事实轴阶段、事件、分支以及录制导入结果。</div>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="./fact-editor.html">打开</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>记录查看</h2>
+    <div class="grid">
+      <article class="card">
+        <div>
+          <div class="tag">Recorder</div>
+          <div class="title">Combat Recorder 阅读器</div>
+          <div class="desc">读取本地 <code>.jsonl</code> 日志，按事件组查看差异和时间线。</div>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="./combat-recorder.html">打开</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <div class="hint">
+    轴编辑器需要你先从宿主生成本地 <code>trigger-catalog.json</code>，然后在页面中手动导入。
+    这条链路不依赖 GitHub catalog，也不要求插件在线。
+  </div>
+
+  <footer>
+    <span>仓库：HiAuRo.WebTools</span>
+    <a href="https://github.com/denghaoxuan991876906/HiAuRo.WebTools">GitHub</a>
+    <a href="https://github.com/denghaoxuan991876906/HiAuRo.WebTools/issues">反馈问题</a>
+  </footer>
+</div>
+</body>
+</html>

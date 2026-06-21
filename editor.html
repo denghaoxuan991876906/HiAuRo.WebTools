@@ -13,6 +13,12 @@
 </head>
 <body>
 <div id="app">
+  <div class="page-drop-zone" id="pageDropZone">
+    <div class="page-drop-card">
+      <div class="page-drop-title">拖拽 JSON 到这里</div>
+      <div class="page-drop-desc">自动识别轴文件、`trigger-catalog.json` 或触发器定义</div>
+    </div>
+  </div>
   <header class="toolbar">
     <div class="actions" style="padding-right:8px">
       <a class="p-btn" href="./index.html" style="text-decoration:none">返回首页</a>
@@ -59,7 +65,7 @@
           <div class="empty-title">开始编辑时间轴</div>
           <button class="p-btn p-prim-col" id="btnNewBig">新建模板</button>
           <button class="p-btn" id="btnLoadBig" style="margin-top:6px">加载文件</button>
-          <div style="margin-top:10px;font-size:11px;color:var(--tx2)">或拖拽 .json 到此处</div>
+          <div style="margin-top:10px;font-size:11px;color:var(--tx2)">或拖拽轴 JSON / trigger-catalog.json 到页面</div>
         </div>
         <div class="etree" id="etree" style="display:none"></div>
       </div>

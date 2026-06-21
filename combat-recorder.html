@@ -7,10 +7,16 @@
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="puppertino/buttons.css">
 <link rel="stylesheet" href="puppertino/forms.css">
-<link rel="stylesheet" href="combat-recorder.css?v=20260621-4">
+<link rel="stylesheet" href="combat-recorder.css?v=20260621-5">
 </head>
 <body>
 <div id="app">
+  <div class="page-drop-zone" id="pageDropZone">
+    <div class="page-drop-card">
+      <div class="page-drop-title">拖拽录制文件到这里</div>
+      <div class="page-drop-desc">支持 `Combat Recorder` 的 `.jsonl` / `.txt` 日志，松手后自动加载</div>
+    </div>
+  </div>
   <header class="toolbar">
     <div class="toolbar-left">
       <a class="p-btn" href="./index.html" style="text-decoration:none">返回首页</a>
@@ -79,7 +85,7 @@
       <div class="timeline-list" id="timelineList">
         <div class="empty-state">
           <div class="empty-title">选择一份 Combat Recorder 日志</div>
-          <div class="empty-copy">页面会按 eventGroupId 聚合，并展示每次技能事件的 before/current 差异。</div>
+          <div class="empty-copy">页面会按 eventGroupId 聚合，并展示每次技能事件的 before/current 差异。也可以直接拖拽日志文件到页面。</div>
         </div>
       </div>
     </aside>
@@ -102,6 +108,6 @@
 </div>
 
 <input type="file" id="fileInput" accept=".jsonl,.txt" hidden>
-<script src="combat-recorder.js?v=20260621-4"></script>
+<script src="combat-recorder.js?v=20260621-5"></script>
 </body>
 </html>

@@ -3,6 +3,7 @@
         file: null,
         fileHandle: null,
         fileName: "",
+        pageDropDepth: 0,
         warnings: [],
         rows: [],
         originalRows: [],
@@ -46,7 +47,8 @@
         detailsSubtitle: document.getElementById("detailsSubtitle"),
         timelineList: document.getElementById("timelineList"),
         detailsContent: document.getElementById("detailsContent"),
-        footerText: document.getElementById("footerText")
+        footerText: document.getElementById("footerText"),
+        pageDropZone: document.getElementById("pageDropZone")
     };
 
     bindEvents();
@@ -80,6 +82,8 @@
             if (!file) return;
             await loadFile(file, null);
         });
+
+        bindPageFileDrop();
 
         refs.btnSetStart.addEventListener("click", () => {
             if (!state.selectedGroupId) return;
@@ -143,6 +147,52 @@
             render();
             event.preventDefault();
         });
+    }
+
+    function bindPageFileDrop() {
+        if (!refs.pageDropZone) return;
+
+        document.addEventListener("dragenter", (event) => {
+            if (!hasFileDrag(event)) return;
+            state.pageDropDepth++;
+            refs.pageDropZone.classList.add("active");
+        });
+
+        document.addEventListener("dragover", (event) => {
+            if (!hasFileDrag(event)) return;
+            event.preventDefault();
+        });
+
+        document.addEventListener("dragleave", (event) => {
+            if (!hasFileDrag(event)) return;
+            state.pageDropDepth = Math.max(0, state.pageDropDepth - 1);
+            if (state.pageDropDepth === 0) refs.pageDropZone.classList.remove("active");
+        });
+
+        document.addEventListener("drop", async (event) => {
+            if (!hasFileDrag(event)) return;
+            event.preventDefault();
+            state.pageDropDepth = 0;
+            refs.pageDropZone.classList.remove("active");
+
+            const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+            if (!file) return;
+            if (!isRecordingFile(file)) {
+                refs.footerText.textContent = "仅支持拖拽 .jsonl 或 .txt 录制文件";
+                return;
+            }
+            await loadFile(file, null);
+        });
+    }
+
+    function hasFileDrag(event) {
+        const types = event.dataTransfer && event.dataTransfer.types;
+        return !!(types && Array.prototype.indexOf.call(types, "Files") >= 0);
+    }
+
+    function isRecordingFile(file) {
+        const name = (file.name || "").toLowerCase();
+        return name.endsWith(".jsonl") || name.endsWith(".txt");
     }
 
     async function loadFile(file, fileHandle) {

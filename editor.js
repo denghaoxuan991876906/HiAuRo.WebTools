@@ -38,6 +38,7 @@ var fileEntries = [];
 
 var factAxisData = null;
 var factNodeTree = [];
+var pageDropDepth = 0;
 
 // ==================== Cookie ====================
 
@@ -123,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('factFileInput').addEventListener('change', function(e) {
         handleFactAxisLoaded(this.files[0]);
     });
+    initPageFileDrop();
     document.addEventListener('click', function(e) {
         if (e.target && e.target.closest('#btnLoadFactAxis')) loadFactAxisFile();
     });
@@ -1078,19 +1080,169 @@ function loadFactAxisFile() {
 }
 
 function handleFactAxisLoaded(file) {
+    readJsonFile(file, function(data) {
+        factAxisData = data;
+        buildFactNodeTree();
+        renderProps();
+        setStatus('已加载事实轴: ' + file.name, 'success');
+    }, '事实轴 JSON 解析失败: ');
+}
+
+function initPageFileDrop() {
+    var dropZone = document.getElementById('pageDropZone');
+    if (!dropZone) return;
+    document.addEventListener('dragenter', function(e) {
+        if (!hasFileDrag(e)) return;
+        pageDropDepth++;
+        dropZone.classList.add('active');
+    });
+    document.addEventListener('dragover', function(e) {
+        if (!hasFileDrag(e)) return;
+        e.preventDefault();
+    });
+    document.addEventListener('dragleave', function(e) {
+        if (!hasFileDrag(e)) return;
+        pageDropDepth = Math.max(0, pageDropDepth - 1);
+        if (pageDropDepth === 0) dropZone.classList.remove('active');
+    });
+    document.addEventListener('drop', function(e) {
+        if (!hasFileDrag(e)) return;
+        e.preventDefault();
+        pageDropDepth = 0;
+        dropZone.classList.remove('active');
+        var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file) routeDroppedJsonFile(file);
+    });
+}
+
+function hasFileDrag(e) {
+    var types = e.dataTransfer && e.dataTransfer.types;
+    return !!(types && Array.prototype.indexOf.call(types, 'Files') >= 0);
+}
+
+function routeDroppedJsonFile(file) {
+    if (!file) return;
+    if (!isJsonLikeFile(file)) {
+        setStatus('仅支持拖拽 JSON 文件', 'error');
+        return;
+    }
+    readJsonFile(file, function(data) {
+        var kind = detectJsonFileKind(data);
+        if (kind === 'catalog') {
+            importCatalogData(data, file.name);
+            return;
+        }
+        if (kind === 'fact-axis') {
+            factAxisData = data;
+            buildFactNodeTree();
+            renderProps();
+            setStatus('已加载事实轴: ' + file.name, 'success');
+            return;
+        }
+        if (kind === 'timeline') {
+            if (isDirty && !confirm('当前有未保存的修改，是否放弃并加载拖拽文件？')) return;
+            loadTimelineData(data, file.name);
+            return;
+        }
+        if (kind === 'trigger-items') {
+            importTriggerItems(data, file.name);
+            return;
+        }
+        setStatus('无法识别该 JSON 类型', 'error');
+    }, 'JSON解析失败: ');
+}
+
+function isJsonLikeFile(file) {
+    var name = (file.name || '').toLowerCase();
+    return name.endsWith('.json') || name.endsWith('.txt');
+}
+
+function readJsonFile(file, onSuccess, errorPrefix) {
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function() {
         try {
-            factAxisData = JSON.parse(reader.result);
-            buildFactNodeTree();
-            renderProps();
+            onSuccess(JSON.parse(reader.result));
         } catch(e) {
-            console.log('Fact axis parse error:', e);
+            setStatus((errorPrefix || 'JSON解析失败: ') + e.message, 'error');
         }
     };
     reader.readAsText(file);
 }
+
+function detectJsonFileKind(data) {
+    if (!data) return 'unknown';
+    if (Array.isArray(data)) return isTriggerItemArray(data) ? 'trigger-items' : 'unknown';
+    if (data.conditions || data.actions) return 'catalog';
+    if (data.phases && Array.isArray(data.phases)) return 'fact-axis';
+    if (data.TreeRoot || data.treeRoot) return 'timeline';
+    if (isTriggerItem(data)) return 'trigger-items';
+    return 'unknown';
+}
+
+function isTriggerItemArray(data) {
+    return Array.isArray(data) && data.length > 0 && data.every(isTriggerItem);
+}
+
+function isTriggerItem(data) {
+    return !!(data && typeof data === 'object' && data.typeName && data.displayName);
+}
+
+function loadTimelineData(data, fileName) {
+    timelineData = data;
+    currentFile = fileName || '';
+    fileHandle = null;
+    isDirty = false;
+    selectedNodePath = null;
+    switchAxis();
+    syncMeta();
+    setStatus('已加载: ' + (fileName || 'JSON'), 'success');
+}
+
+function importCatalogData(catalog, fileName) {
+    var conds = (catalog.conditions || []).map(function(c) {
+        c.category = 'catalog';
+        return c;
+    });
+    var acts = (catalog.actions || []).map(function(a) {
+        a.category = 'catalog';
+        return a;
+    });
+    localTriggers.conditions = conds.concat(localTriggers.conditions || []);
+    localTriggers.actions = acts.concat(localTriggers.actions || []);
+    localStorage.setItem('hiAutoLocalTriggers', JSON.stringify(localTriggers));
+    renderProps();
+    setStatus('已加载触发器库: ' + conds.length + ' 条件, ' + acts.length + ' 动作', 'success');
+    if (fileName) setCookie('hiAutoCatalogFile', fileName, 365);
+}
+
+function importTriggerItems(items, fileName) {
+    if (!Array.isArray(items)) items = [items];
+    var imported = 0;
+    items.forEach(function(item) {
+        item.category = 'local';
+        item.cloudSync = false;
+        var isCond = item.typeName.toLowerCase().indexOf('cond') >= 0;
+        var list = isCond ? localTriggers.conditions : localTriggers.actions;
+        var exists = list.some(function(t) { return t.typeName === item.typeName; });
+        if (!exists) {
+            list.push(item);
+            imported++;
+        }
+    });
+    localStorage.setItem('hiAutoLocalTriggers', JSON.stringify(localTriggers));
+    renderProps();
+    setStatus('已导入触发器: ' + imported + ' / ' + items.length + (fileName ? ' (' + fileName + ')' : ''), 'success');
+}
+
+function selfCheckJsonRouting() {
+    console.assert(detectJsonFileKind({ conditions: [], actions: [] }) === 'catalog', 'catalog detect failed');
+    console.assert(detectJsonFileKind({ phases: [] }) === 'fact-axis', 'fact-axis detect failed');
+    console.assert(detectJsonFileKind({ TreeRoot: {} }) === 'timeline', 'timeline detect failed');
+    console.assert(detectJsonFileKind({ typeName: 'DemoCond', displayName: 'Demo' }) === 'trigger-items', 'trigger detect failed');
+}
+
+selfCheckJsonRouting();
 
 function buildFactNodeTree() {
     factNodeTree = [];
@@ -1182,9 +1334,9 @@ async function loadFile() {
     } else document.getElementById('edFileInput').click();
 }
 function readFileObj(file) {
-    var r = new FileReader();
-        r.onload = function() { try { timelineData = JSON.parse(r.result); } catch(ex) { setStatus('JSON解析失败: '+ex.message,'error'); return; } currentFile=file.name; isDirty=false; selectedNodePath=null; switchAxis(); syncMeta(); setStatus('已加载: '+file.name,'success'); };
-    r.readAsText(file);
+    readJsonFile(file, function(data) {
+        loadTimelineData(data, file.name);
+    }, 'JSON解析失败: ');
 }
 async function saveFile() {
     if (!timelineData) { setStatus('无内容','error'); return; }
@@ -1228,22 +1380,9 @@ async function loadCatalogFile() {
 }
 
 function processCatalog(file) {
-    var reader = new FileReader();
-    reader.onload = function() {
-        try {
-            var catalog = JSON.parse(reader.result);
-            var conds = catalog.conditions || [];
-            var acts = catalog.actions || [];
-            conds.forEach(function(c) { c.category = 'catalog'; });
-            acts.forEach(function(a) { a.category = 'catalog'; });
-            localTriggers.conditions = conds.concat(localTriggers.conditions || []);
-            localTriggers.actions = acts.concat(localTriggers.actions || []);
-            localStorage.setItem('hiAutoLocalTriggers', JSON.stringify(localTriggers));
-            setStatus('已加载触发器库: ' + conds.length + ' 条件, ' + acts.length + ' 动作', 'success');
-            renderProps();
-        } catch(e) { setStatus('JSON解析失败: ' + e.message, 'error'); }
-    };
-    reader.readAsText(file);
+    readJsonFile(file, function(data) {
+        importCatalogData(data, file.name);
+    }, 'JSON解析失败: ');
 }
 
 async function restoreCatalogFromHandle() {

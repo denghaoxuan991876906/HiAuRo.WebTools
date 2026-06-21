@@ -33,7 +33,8 @@ body {
         var(--bg-app);
     color: var(--text-main);
     min-height: 100vh;
-    overflow: visible;
+    height: 100vh;
+    overflow: hidden;
 }
 
 button,
@@ -43,9 +44,10 @@ select {
 }
 
 #app {
-    min-height: 100vh;
+    height: 100vh;
     display: grid;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto auto auto 1fr auto;
+    overflow: hidden;
 }
 
 .page-drop-zone {
@@ -252,12 +254,13 @@ select {
 }
 
 .layout {
-    min-height: auto;
+    min-height: 0;
     display: grid;
     grid-template-columns: minmax(320px, 420px) 1fr;
     gap: 14px;
     padding: 0 18px 18px;
-    align-items: start;
+    align-items: stretch;
+    overflow: hidden;
 }
 
 .timeline-panel,
@@ -268,13 +271,8 @@ select {
     border: 1px solid var(--border);
     border-radius: 14px;
     box-shadow: var(--shadow);
-    overflow: visible;
-}
-
-.timeline-panel {
-    position: sticky;
-    top: 18px;
-    max-height: calc(100vh - 36px);
+    min-height: 0;
+    height: 100%;
     overflow: hidden;
 }
 
@@ -297,12 +295,26 @@ select {
 
 .timeline-list,
 .details-scroll {
-    overflow: visible;
+    min-height: 0;
 }
 
 .timeline-list {
+    flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+.details-scroll {
+    flex: 1 1 auto;
+    padding: 16px;
+    display: block;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+}
+
+.details-scroll > * + * {
+    margin-top: 14px;
 }
 
 .event-row {
@@ -392,12 +404,6 @@ select {
 .empty-copy {
     color: var(--text-sub);
     line-height: 1.5;
-}
-
-.details-scroll {
-    padding: 16px;
-    display: grid;
-    gap: 14px;
 }
 
 .overview-strip {
@@ -578,11 +584,29 @@ select {
     padding: 8px 18px 14px;
     color: var(--text-muted);
     font-size: 12px;
+    overflow: hidden;
 }
 
 @media (max-width: 980px) {
+    body {
+        height: auto;
+        overflow: auto;
+    }
+
+    #app {
+        height: auto;
+        overflow: visible;
+    }
+
     .layout {
         grid-template-columns: 1fr;
+        min-height: auto;
+        overflow: visible;
+    }
+
+    .timeline-panel,
+    .details-panel {
+        height: auto;
     }
 
     .timeline-panel {
